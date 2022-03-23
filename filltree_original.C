@@ -58,9 +58,8 @@ void filltree(int runnum)
     Int_t sofiaWR, NumSofSci, IdS2, IdS8;
     TString dir = gSystem->Getenv("VMCWORKDIR");
     TString ntuple_options = "RAW";
-    //TString ucesb_dir = getenv("UCESB_DIR");// UCESB_DIR: /u/land/fake_cvmfs/9.13/ucesb
+    TString ucesb_dir = getenv("UCESB_DIR");// UCESB_DIR: /u/land/fake_cvmfs/9.13/ucesb
     //TString ucesb_dir = "/u/taniuchi/s467/ucesb";// UCESB_DIR: /u/land/fake_cvmfs/9.13/ucesb
-    TString ucesb_dir = "/u/land/latar/";// UCESB_DIR: /u/land/fake_cvmfs/9.13/ucesb
     TString filename, outputFilename, upexps_dir, ucesb_path, sofiacaldir,  sofiacalfilename, vftxcalfilename, tofwhitfilename, musiccalfilename;
     Double_t brho28;
     
@@ -79,6 +78,7 @@ void filltree(int runnum)
       
       upexps_dir = ucesb_dir + "/../upexps/";                      // for local computers
       // upexps_dir = "/u/land/fake_cvmfs/upexps";                 // for lxlandana computers
+      // upexps_dir = "/u/land/lynx.landexp/202002_s444/upexps/";  // for lxg computers
       ucesb_path = upexps_dir + "/202002_s444/202002_s444 --allow-errors --input-buffer=100Mi";
       
       sofiacaldir = dir + "/sofia/macros/s444/parameters/";
@@ -146,8 +146,7 @@ void filltree(int runnum)
       std::cout << "OUTPUT FILE: " << outputFilename << std::endl;
       std::cout << "Brho28: " << brho28 << std::endl;
       
-      //upexps_dir = ucesb_dir + "/../upexps/";                      // for local computers // copied from fake and recompiled
-      upexps_dir = ucesb_dir + "upexps/";                      // for local computers // copied from fake and recompiled
+      upexps_dir = ucesb_dir + "/../upexps/";                      // for local computers // copied from fake and recompiled
       // upexps_dir = "/u/land/fake_cvmfs/upexps";                 // for lxlandana computers
       // upexps_dir = "/u/land/lynx.landexp/202002_s467/upexps/";  // for lxg computers
       ucesb_path = upexps_dir + "/202002_s467_jentob/202002_s467 --allow-errors --input-buffer=100Mi";
@@ -207,7 +206,8 @@ void filltree(int runnum)
     // Create source using ucesb for input ------------------
     EXT_STR_h101 ucesb_struct;
 
-    R3BUcesbSource* source = new R3BUcesbSource(filename, ntuple_options, ucesb_path, &ucesb_struct, sizeof(ucesb_struct));
+    R3BUcesbSource* source =
+        new R3BUcesbSource(filename, ntuple_options, ucesb_path, &ucesb_struct, sizeof(ucesb_struct));
     source->SetMaxEvents(nev);
 
     // Definition of reader ---------------------------------
@@ -491,7 +491,7 @@ void filltree(int runnum)
     }
 
     //Califa
-    //if (fCalifa && fCal_level_califa)
+    //if (fCalifa && fCal_level_califa){
     if (fCalifa){
 	
 	// R3BCalifaMapped2CrystalCal ---
@@ -504,7 +504,7 @@ void filltree(int runnum)
 	 CalifaCal2Hit->SetCrystalThreshold(100.); // 100keV
 	 CalifaCal2Hit->SetDRThreshold(10000.);    // 10MeV
 	 CalifaCal2Hit->SetOnline(NOTstorehitdata);
-	 run->AddTask(CalifaCal2Hit);
+	  run->AddTask(CalifaCal2Hit);
     }
 
 
@@ -554,17 +554,6 @@ void filltree(int runnum)
         R3BSofScalersOnlineSpectra* scalersonline = new R3BSofScalersOnlineSpectra();
         run->AddTask(scalersonline);
     }
-    
-    /*if (fCalifa)
-    {
-        R3BCalifaOnlineSpectra* CalifaOnline = new R3BCalifaOnlineSpectra();
-        CalifaOnline->SetRange_max(30000); // 30000 -> 30MeV
-        CalifaOnline->SetBinChannelFebex(500);
-        CalifaOnline->SetMaxBinFebex(10000); // 10000 -> 10MeV
-        run->AddTask(CalifaOnline);
-    }*/
-
-    //if (fMusic && fCalifa && fTwim) ?????????????????
     /*
     if (fSci&&fMusic&&fTwim){
       R3BSofFrsFillTree* frsfilltree = new R3BSofFrsFillTree();

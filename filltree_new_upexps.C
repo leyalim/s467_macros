@@ -1,231 +1,231 @@
-/*
- *  Macro to run the online for all the detectors simultaneously
- *
- *  One needs to set up the 2020 experiments: s444 or s467, the unpackers are:
- *
- *  at $UCESB_DIR/../upexps/202002_s444 and $UCESB_DIR/../upexps/202002_s467
- *
- *
- *  Author: Jose Luis <joseluis.rodriguez.sanchez@usc.es>
- *  @since Feb 20th, 2020
- *
- */
+	/*
+	 *  Macro to run the online for all the detectors simultaneously
+	 *
+	 *  One needs to set up the 2020 experiments: s444 or s467, the unpackers are:
+	 *
+	 *  at $UCESB_DIR/../upexps/202002_s444 and $UCESB_DIR/../upexps/202002_s467
+	 *
+	 *
+	 *  Author: Jose Luis <joseluis.rodriguez.sanchez@usc.es>
+	 *  @since Feb 20th, 2020
+	 *
+	 */
 
-typedef struct EXT_STR_h101_t
-{
-    EXT_STR_h101_unpack_t unpack;
-    EXT_STR_h101_TPAT_t unpacktpat;
-    EXT_STR_h101_SOFMWPC_onion_t mwpc;
-    EXT_STR_h101_MUSIC_onion_t music;
-    EXT_STR_h101_SOFSCI_onion_t sci;
-    EXT_STR_h101_AMS_t ams;
-    EXT_STR_h101_WRMASTER_t wrmaster;
-    EXT_STR_h101_WRSOFIA_t wrsofia;
-    EXT_STR_h101_WRS2_t wrs2;
-    EXT_STR_h101_WRS8_t wrs8;
-    EXT_STR_h101_CALIFA_t califa;
-  //    EXT_STR_h101_WRCALIFA_t wrcalifa;
-    EXT_STR_h101_SOFTWIM_onion_t twim;
-    EXT_STR_h101_SOFTOFW_onion_t tofw;
-    EXT_STR_h101_SOFSCALERS_onion_t scalers;
-    EXT_STR_h101_raw_nnp_tamex_t raw_nnp;
-    EXT_STR_h101_WRNEULAND_t wrneuland;
-    EXT_STR_h101_FRS_t frs;
-} EXT_STR_h101;
+	typedef struct EXT_STR_h101_t
+	{
+	    EXT_STR_h101_unpack_t unpack;
+	    EXT_STR_h101_TPAT_t unpacktpat;
+	    EXT_STR_h101_SOFMWPC_onion_t mwpc;
+	    EXT_STR_h101_MUSIC_onion_t music;
+	    EXT_STR_h101_SOFSCI_onion_t sci;
+	    EXT_STR_h101_AMS_t ams;
+	    EXT_STR_h101_WRMASTER_t wrmaster;
+	    EXT_STR_h101_WRSOFIA_t wrsofia;
+	    EXT_STR_h101_WRS2_t wrs2;
+	    EXT_STR_h101_WRS8_t wrs8;
+	    EXT_STR_h101_CALIFA_t califa;
+	  //EXT_STR_h101_WRCALIFA_t wrcalifa;
+	    EXT_STR_h101_SOFTWIM_onion_t twim;
+	    EXT_STR_h101_SOFTOFW_onion_t tofw;
+	    EXT_STR_h101_SOFSCALERS_onion_t scalers;
+	    EXT_STR_h101_raw_nnp_tamex_t raw_nnp;
+	    EXT_STR_h101_WRNEULAND_t wrneuland;
+	    EXT_STR_h101_FRS_t frs;
+	} EXT_STR_h101;
 
-void filltree(int runnum);
 
-void filltree(){
-  filltree(340);
-}
+	void filltree_new_upexps(int runnum)
+	{
+	    TStopwatch timer;
+	    timer.Start();
+	      
+	    auto datime = new TDatime();
+	    TString str_datime = datime->AsString();
+	    string month = str_datime(4,3);
 
-void filltree(int runnum)
-{
-    TStopwatch timer;
-    timer.Start();
+	    //const Int_t nev = -1; // number of events to read, -1 - until CTRL+C
+	    const Int_t nev = 10000000; // Only nev events to read
+	    const Int_t fRunId = 1;
+	    Int_t i=0;
 
-    const Int_t nev = -1; // number of events to read, -1 - until CTRL+C
-    //const Int_t nev = 1000000; // Only nev events to read
-    const Int_t fRunId = 1;
+	    // *********************************** //
+	    // PLEASE CHANGE THE EXPERIMENT NUMBER //
+	    // *********************************** //
+	    const Int_t expId = 467;               // select experiment: 444 or 467
+	    // *********************************** //
+	    
+	    // NumSofSci, file names and paths -----------------------------
+	    Int_t sofiaWR, NumSofSci, IdS2, IdS8;
+	    TString dir = gSystem->Getenv("VMCWORKDIR");
+	    TString ntuple_options = "RAW";
+	    //TString ucesb_dir = getenv("UCESB_DIR");// UCESB_DIR: /u/land/fake_cvmfs/9.13/ucesb
+	    //TString ucesb_dir = "/u/taniuchi/s467/ucesb";// UCESB_DIR: /u/land/fake_cvmfs/9.13/ucesb
+	    TString ucesb_dir = "/u/land/latar/";// UCESB_DIR: /u/land/fake_cvmfs/9.13/ucesb
+	    TString filename, outputFilename, upexps_dir, ucesb_path, sofiacaldir,  sofiacalfilename, vftxcalfilename, tofwhitfilename, musiccalfilename;
+	    Double_t brho28;
+	    //outputFilename = Form("./rootfiles/rootfiletmp/fragment_Sep2021/s467_filltree_Setting%i_%04d_%03d_%i%s.root",i, runnum, datime->GetDay(), month.c_str());
+	    
+	    if(runnum==0){
+	      //filename = "--stream=lxlanddaq01:9000";
+	      cerr<<"No online analysis available"<<endl;
+	      return 1;
+	    }else if (expId==444){ // not modified
+	      NumSofSci = 1; // s444: PRIMARY BEAM EXP, 1 SofSci at CAVE C ONLY
+	      IdS2 = 0;
+	      IdS8 = 0;
+	      sofiaWR = 0x500;
+	      
+	      filename = "/lustre/land/202002_s444/stitched/main0040_0001.lmd";
+	      outputFilename = "data_s444_online.root";
+	      
+	      upexps_dir = ucesb_dir + "/../upexps/";                      // for local computers
+	      // upexps_dir = "/u/land/fake_cvmfs/upexps";                 // for lxlandana computers
+	      ucesb_path = upexps_dir + "/202002_s444/202002_s444 --allow-errors --input-buffer=100Mi";
+	      
+	      sofiacaldir = dir + "/sofia/macros/s444/parameters/";
+	    }
+	    else if (expId==467){
+	      NumSofSci = 4; // s467: SECONDARY BEAM EXP, 2 at S2, 1 at S8, 1 at CAVE C
+	      IdS2 = 2;
+	      IdS8 = 3;
+	      sofiaWR = 0xe00;
 
-    // *********************************** //
-    // PLEASE CHANGE THE EXPERIMENT NUMBER //
-    // *********************************** //
-    const Int_t expId = 467;               // select experiment: 444 or 467
-    // *********************************** //
-    
-    // NumSofSci, file names and paths -----------------------------
-    Int_t sofiaWR, NumSofSci, IdS2, IdS8;
-    TString dir = gSystem->Getenv("VMCWORKDIR");
-    TString ntuple_options = "RAW";
-    //TString ucesb_dir = getenv("UCESB_DIR");// UCESB_DIR: /u/land/fake_cvmfs/9.13/ucesb
-    //TString ucesb_dir = "/u/taniuchi/s467/ucesb";// UCESB_DIR: /u/land/fake_cvmfs/9.13/ucesb
-    TString ucesb_dir = "/u/land/latar/";// UCESB_DIR: /u/land/fake_cvmfs/9.13/ucesb
-    TString filename, outputFilename, upexps_dir, ucesb_path, sofiacaldir,  sofiacalfilename, vftxcalfilename, tofwhitfilename, musiccalfilename;
-    Double_t brho28;
-    
-    if(runnum==0){
-      //filename = "--stream=lxlanddaq01:9000";
-      cerr<<"No online analysis available"<<endl;
-      return 1;
-    }else if (expId==444){ // not modified
-      NumSofSci = 1; // s444: PRIMARY BEAM EXP, 1 SofSci at CAVE C ONLY
-      IdS2 = 0;
-      IdS8 = 0;
-      sofiaWR = 0x500;
-      
-      filename = "/lustre/land/202002_s444/stitched/main0040_0001.lmd";
-      outputFilename = "data_s444_online.root";
-      
-      upexps_dir = ucesb_dir + "/../upexps/";                      // for local computers
-      // upexps_dir = "/u/land/fake_cvmfs/upexps";                 // for lxlandana computers
-      ucesb_path = upexps_dir + "/202002_s444/202002_s444 --allow-errors --input-buffer=100Mi";
-      
-      sofiacaldir = dir + "/sofia/macros/s444/parameters/";
-    }
-    else if (expId==467){
-      NumSofSci = 4; // s467: SECONDARY BEAM EXP, 2 at S2, 1 at S8, 1 at CAVE C
-      IdS2 = 2;
-      IdS8 = 3;
-      sofiaWR = 0xe00;
+	      std::ifstream RunList("/u/taniuchi/s467/ana/R3BRoot_ryotani/sofia/macros/s467_ryotani/RunSummary.csv", std::ios::in);
+	      if(!RunList.is_open()) std::cerr <<"No run summary found\n";
+	      int runnumcsv[500], targetpos[500], musicgain[500], junk[500];
+	      int FRSsetting[500]; // calib:0, ToFCalib:6-8, 40Ca:9, 39Ca:10, 38Ca:11,12, 50Ca:13, ToFWcalib:14
+	      string dummyline;
+	      char dumchar;
+	      double brhocsv[500];
+	      std::getline (RunList, dummyline);
+	      //std::cout << dummyline << std::endl;
+	      
+	      
+	      while(true){
+		RunList>>runnumcsv[i]>>dumchar>>FRSsetting[i]>>dumchar>>brhocsv[i]>>dumchar>>targetpos[i]>>dumchar>>musicgain[i]>>dumchar>>junk[i];
+		//std::cout<<runnumcsv[i]<<dumchar<<FRSsetting[i]<<dumchar<<brhocsv[i]<<dumchar<<targetpos[i]<<dumchar<<musicgain[i]<<dumchar<<junk[i]<<std::endl;
+		if(runnumcsv[i] == runnum){
+		  if(junk[i] == 0){
+		    // if(targetpos[i]!=1424) return;
+		    brho28 = brhocsv[i];
+		    break;
+		  } else {
+		    std::cout << "Junk run" << std::endl;
+		    return;
+		  }
+		}
+		if(i > 400 || !RunList.good()){
+		  std::cerr << "No info for run found" <<std::endl;
+		  return;
+		}
+		i++;
+	      }
+	    
+	      outputFilename = Form("./rootfiles/rootfiletmp/fragment_Sep2021/s467_filltree_Setting%i_%04d_%i%s.root", FRSsetting[i], runnum, datime->GetDay(), month.c_str());
+	      
+	      filename = Form("/u/taniuchi/s467/lmd_stitched/main%04d_*.lmd", runnum);
+	      sofiacaldir = dir + "/sofia/macros/s467_ryotani/parameters/";
+	      if(FRSsetting[i] < 9){
+		sofiacalfilename = sofiacaldir + "CalibParam_lowgain.par";
+	      } else if(musicgain[i] == 0){
+		sofiacalfilename = sofiacaldir + "CalibParam_lowgain_FRS" + to_string(FRSsetting[i]) + ".par";
+	      } else {
+		sofiacalfilename = sofiacaldir + "CalibParam_highgain_FRS" + to_string(FRSsetting[i]) + ".par";
+	      }
+	      vftxcalfilename = sofiacaldir + "tcal_VFTX.par";
+	      tofwhitfilename = sofiacaldir + "tofw_hit.par";
+	      musiccalfilename = sofiacaldir + "music_cal.par";
 
-      std::ifstream RunList("/u/taniuchi/s467/ana/R3BRoot_ryotani/sofia/macros/s467_ryotani/RunSummary.csv", std::ios::in);
-      if(!RunList.is_open()) std::cerr <<"No run summary found\n";
-      int runnumcsv[500], targetpos[500], musicgain[500], junk[500];
-      int FRSsetting[500]; // calib:0, ToFCalib:6-8, 40Ca:9, 39Ca:10, 38Ca:11,12, 50Ca:13, ToFWcalib:14
-      string dummyline;
-      char dumchar;
-      double brhocsv[500];
-      std::getline (RunList, dummyline);
-      //std::cout << dummyline << std::endl;
-      Int_t i=0;
-      
-      while(true){
-	RunList>>runnumcsv[i]>>dumchar>>FRSsetting[i]>>dumchar>>brhocsv[i]>>dumchar>>targetpos[i]>>dumchar>>musicgain[i]>>dumchar>>junk[i];
-	//std::cout<<runnumcsv[i]<<dumchar<<FRSsetting[i]<<dumchar<<brhocsv[i]<<dumchar<<targetpos[i]<<dumchar<<musicgain[i]<<dumchar<<junk[i]<<std::endl;
-	if(runnumcsv[i] == runnum){
-	  if(junk[i] == 0){
-	    // if(targetpos[i]!=1424) return;
-	    brho28 = brhocsv[i];
-	    break;
-	  } else {
-	    std::cout << "Junk run" << std::endl;
-	    return;
-	  }
-	}
-	if(i > 400 || !RunList.good()){
-	  std::cerr << "No info for run found" <<std::endl;
-	  return;
-	}
-	i++;
-      }
-      
-      filename = Form("/u/taniuchi/s467/lmd_stitched/main%04d_*.lmd", runnum);
-      sofiacaldir = dir + "/sofia/macros/s467_ryotani/parameters/";
-      if(FRSsetting[i] < 9){
-	sofiacalfilename = sofiacaldir + "CalibParam_lowgain.par";
-      } else if(musicgain[i] == 0){
-	sofiacalfilename = sofiacaldir + "CalibParam_lowgain_FRS" + to_string(FRSsetting[i]) + ".par";
-      } else {
-	sofiacalfilename = sofiacaldir + "CalibParam_highgain_FRS" + to_string(FRSsetting[i]) + ".par";
-      }
-      vftxcalfilename = sofiacaldir + "tcal_VFTX.par";
-      tofwhitfilename = sofiacaldir + "tofw_hit.par";
-      musiccalfilename = sofiacaldir + "music_cal.par";
-      //
-      auto datime = new TDatime();
-      TString str_datime = datime->AsString();
-      string month = str_datime(4,3);
-      outputFilename = Form("./rootfiles/rootfiletmp/fragment_Sep2021/s467_filltree_Setting%i_%04d_%i%s.root", FRSsetting[i], runnum, datime->GetDay(), month.c_str());
+	      std::cout << "LMD FILE: " << filename << std::endl;
+	      std::cout << "PARAM FILE (VFTX): " << vftxcalfilename << std::endl;
+	      std::cout << "PARAM FILE (TofW): " << tofwhitfilename << std::endl;
+	      std::cout << "PARAM FILE (MUSIC CAL): " << musiccalfilename << std::endl;
+	      std::cout << "PARAM FILE (OTHERS): " << sofiacalfilename << std::endl;
+	      std::cout << "OUTPUT FILE: " << outputFilename << std::endl;
+	      std::cout << "Brho28: " << brho28 << std::endl;
+	      
+	      //upexps_dir = ucesb_dir + "/../upexps/";                      // for local computers // copied from fake and recompiled
+	      upexps_dir = ucesb_dir + "upexps/";                      // for local computers // copied from fake and recompiled
+	      // upexps_dir = "/u/land/fake_cvmfs/upexps";                 // for lxlandana computers
+	      // upexps_dir = "/u/land/lynx.landexp/202002_s467/upexps/";  // for lxg computers
+	      ucesb_path =  "/u/land/latar/upexps/202002_s467/202002_s467 --allow-errors --input-buffer=100Mi";
+	      //ucesb_path = upexps_dir + "/202002_s467_jentob/202002_s467 --allow-errors --input-buffer=100Mi";
+	    }
+	    else{
+	      std::cout << "Experiment was not selected" << std::endl;
+	      gApplication->Terminate();
+	    }
+	    // Output file -----------------------------------------
+	    ucesb_path.ReplaceAll("//", "/");
+	    sofiacalfilename.ReplaceAll("//", "/");
+	    vftxcalfilename.ReplaceAll("//", "/");
+	    tofwhitfilename.ReplaceAll("//", "/");
+	    musiccalfilename.ReplaceAll("//", "/");
+	    
+	    // store data or not ------------------------------------
+	    Bool_t fCal_level_califa = true;  // set true if there exists a file with the calibration parameters
+	    Bool_t NOTstoremappeddata = false; // if true, don't store mapped data in the root file
+	    Bool_t NOTstorecaldata = false;    // if true, don't store cal data in the root file
+	    Bool_t NOTstorehitdata = false;    // if true, don't store hit data in the root file
+	    
+	    // Online server configuration --------------------------
+	    Int_t refresh = 100; // Refresh rate for online histograms
+	    //Int_t port = 10000 + runnum; // Port number for the online visualization, example lxgXXXX:8888
+	    Int_t port = 9885; // Port number for the online visualization, example lxgXXXX:8888
 
-      std::cout << "LMD FILE: " << filename << std::endl;
-      std::cout << "PARAM FILE (VFTX): " << vftxcalfilename << std::endl;
-      std::cout << "PARAM FILE (TofW): " << tofwhitfilename << std::endl;
-      std::cout << "PARAM FILE (MUSIC CAL): " << musiccalfilename << std::endl;
-      std::cout << "PARAM FILE (OTHERS): " << sofiacalfilename << std::endl;
-      std::cout << "OUTPUT FILE: " << outputFilename << std::endl;
-      std::cout << "Brho28: " << brho28 << std::endl;
-      
-      //upexps_dir = ucesb_dir + "/../upexps/";                      // for local computers // copied from fake and recompiled
-      upexps_dir = ucesb_dir + "upexps/";                      // for local computers // copied from fake and recompiled
-      // upexps_dir = "/u/land/fake_cvmfs/upexps";                 // for lxlandana computers
-      // upexps_dir = "/u/land/lynx.landexp/202002_s467/upexps/";  // for lxg computers
-      ucesb_path = upexps_dir + "/202002_s467_jentob/202002_s467 --allow-errors --input-buffer=100Mi";
-      //ucesb_path = upexps_dir + "/202002_s467_jentob/202002_s467 --allow-errors --input-buffer=100Mi";
-    }
-    else{
-      std::cout << "Experiment was not selected" << std::endl;
-      gApplication->Terminate();
-    }
-    // Output file -----------------------------------------
-    ucesb_path.ReplaceAll("//", "/");
-    sofiacalfilename.ReplaceAll("//", "/");
-    vftxcalfilename.ReplaceAll("//", "/");
-    tofwhitfilename.ReplaceAll("//", "/");
-    musiccalfilename.ReplaceAll("//", "/");
-    
-    // store data or not ------------------------------------
-    Bool_t fCal_level_califa = true;  // set true if there exists a file with the calibration parameters
-    Bool_t NOTstoremappeddata = false; // if true, don't store mapped data in the root file
-    Bool_t NOTstorecaldata = false;    // if true, don't store cal data in the root file
-    Bool_t NOTstorehitdata = false;    // if true, don't store hit data in the root file
-    
-    // Online server configuration --------------------------
-    Int_t refresh = 100; // Refresh rate for online histograms
-    //Int_t port = 10000 + runnum; // Port number for the online visualization, example lxgXXXX:8888
-    Int_t port = 9885; // Port number for the online visualization, example lxgXXXX:8888
+	    // Setup: Selection of detectors ------------------------
+	    Bool_t fFrs = true;      // FRS for production of exotic beams (just scintillators)
+	    Bool_t fFrsTpcs = false; // Tpcs at FRS (S2) for scintillator calibration in position
+	    Bool_t fFrsMws = false;  // MWs at FRS (S8) for beam position
+	    Bool_t fFrsSci = true;   // Start: Plastic scintillators at FRS
+	    Bool_t fMwpc0 = true;    // MWPC0 for tracking at entrance of Cave-C
+	    Bool_t fMusic = true;    // R3B-Music: Ionization chamber for charge-Z
+	    Bool_t fSci = true;      // Start: Plastic scintillator for ToF
+	    //Bool_t fAms = false;     // AMS tracking detectors
+	    Bool_t fCalifa = true;  // Califa calorimeter
+	    Bool_t fMwpc1 = true;    // MWPC1 for tracking of fragments in front of target
+	    Bool_t fMwpc2 = true;    // MWPC2 for tracking of fragments before GLAD
+	    Bool_t fTwim = true;     // Twim: Ionization chamber for charge-Z of fragments
+	    Bool_t fMwpc3 = true;    // MWPC3 for tracking of fragments behind GLAD
+	    Bool_t fTofW = true;     // ToF-Wall for time-of-flight of fragments behind GLAD
+	    Bool_t fScalers = true;  // SIS3820 scalers at Cave C
+	    //Bool_t fNeuland = true;  // NeuLAND for neutrons behind GLAD
+	    //Bool_t fTracking = true; // Tracking of fragments inside GLAD
 
-    // Setup: Selection of detectors ------------------------
-    Bool_t fFrs = true;      // FRS for production of exotic beams (just scintillators)
-    Bool_t fFrsTpcs = false; // Tpcs at FRS (S2) for scintillator calibration in position
-    Bool_t fFrsMws = false;  // MWs at FRS (S8) for beam position
-    Bool_t fFrsSci = true;   // Start: Plastic scintillators at FRS
-    Bool_t fMwpc0 = true;    // MWPC0 for tracking at entrance of Cave-C
-    Bool_t fMusic = true;    // R3B-Music: Ionization chamber for charge-Z
-    Bool_t fSci = true;      // Start: Plastic scintillator for ToF
-    //Bool_t fAms = false;     // AMS tracking detectors
-    Bool_t fCalifa = true;  // Califa calorimeter
-    Bool_t fMwpc1 = true;    // MWPC1 for tracking of fragments in front of target
-    Bool_t fMwpc2 = true;    // MWPC2 for tracking of fragments before GLAD
-    Bool_t fTwim = true;     // Twim: Ionization chamber for charge-Z of fragments
-    Bool_t fMwpc3 = true;    // MWPC3 for tracking of fragments behind GLAD
-    Bool_t fTofW = true;     // ToF-Wall for time-of-flight of fragments behind GLAD
-    Bool_t fScalers = true;  // SIS3820 scalers at Cave C
-    //Bool_t fNeuland = true;  // NeuLAND for neutrons behind GLAD
-    //Bool_t fTracking = true; // Tracking of fragments inside GLAD
+	    // Calibration files ------------------------------------
+	    // Parameters for CALIFA mapping
+#if 0
+	    TString califamapdir = dir + "/macros/r3b/unpack/s467/califa/parameters/";
+	    TString califamapfilename = califamapdir + "CALIFA_mapping.par";
+	    califamapfilename.ReplaceAll("//", "/");
+#endif
+	    // Parameters for CALIFA calibration in keV
+	    TString califadir = dir + "/macros/r3b/unpack/s467/califa/parameters/";
+	    TString califacalfilename = califadir + "Califa_Cal8Feb2020.root";
+	    califacalfilename.ReplaceAll("//", "/");
 
-    // Calibration files ------------------------------------
-    // Parameters for CALIFA mapping
-    TString califamapdir = dir + "/macros/r3b/unpack/s467/califa/parameters/";
-    TString califamapfilename = califamapdir + "CALIFA_mapping.par";
-    califamapfilename.ReplaceAll("//", "/");
-    // Parameters for CALIFA calibration in keV
-    TString califadir = dir + "/macros/r3b/unpack/s467/califa/parameters/";
-    TString califacalfilename = califadir + "Califa_Cal8Feb2020.root";
-    califacalfilename.ReplaceAll("//", "/");
+	    // Create source using ucesb for input ------------------
+	    EXT_STR_h101 ucesb_struct;
 
-    // Create source using ucesb for input ------------------
-    EXT_STR_h101 ucesb_struct;
+	    R3BUcesbSource* source = new R3BUcesbSource(filename, ntuple_options, ucesb_path, &ucesb_struct, sizeof(ucesb_struct));
+	    source->SetMaxEvents(nev);
 
-    R3BUcesbSource* source = new R3BUcesbSource(filename, ntuple_options, ucesb_path, &ucesb_struct, sizeof(ucesb_struct));
-    source->SetMaxEvents(nev);
-
-    // Definition of reader ---------------------------------
-    source->AddReader(new R3BUnpackReader(&ucesb_struct.unpack,offsetof(EXT_STR_h101, unpack)));
-    source->AddReader(new R3BTrloiiTpatReader(&ucesb_struct.unpacktpat,offsetof(EXT_STR_h101, unpacktpat)));
-    
-    R3BFrsReaderNov19* unpackfrs;
-    R3BMusicReader* unpackmusic;
-    R3BSofSciReader* unpacksci;
-    R3BWhiterabbitS2Reader* unpackWRS2;
-    R3BWhiterabbitS8Reader* unpackWRS8;
-    R3BWhiterabbitMasterReader* unpackWRMaster;
-    R3BSofWhiterabbitReader* unpackWRSofia;
-    R3BAmsReader* unpackams;
-    R3BCalifaFebexReader* unpackcalifa;
-    R3BWhiterabbitCalifaReader* unpackWRCalifa;
-    R3BSofMwpcReader* unpackmwpc;
-    R3BSofTwimReader* unpacktwim;
+	    // Definition of reader ---------------------------------
+	    source->AddReader(new R3BUnpackReader(&ucesb_struct.unpack,offsetof(EXT_STR_h101, unpack)));
+	    source->AddReader(new R3BTrloiiTpatReader(&ucesb_struct.unpacktpat,offsetof(EXT_STR_h101, unpacktpat)));
+	    
+	    R3BFrsReaderNov19* unpackfrs;
+	    R3BMusicReader* unpackmusic;
+	    R3BSofSciReader* unpacksci;
+	    R3BWhiterabbitS2Reader* unpackWRS2;
+	    R3BWhiterabbitS8Reader* unpackWRS8;
+	    R3BWhiterabbitMasterReader* unpackWRMaster;
+	    R3BSofWhiterabbitReader* unpackWRSofia;
+	    R3BAmsReader* unpackams;
+	    R3BCalifaFebexReader* unpackcalifa;
+	    R3BWhiterabbitCalifaReader* unpackWRCalifa;
+	    R3BMwpcReader* unpackmwpc;
+	    R3BTwimReader* unpacktwim;
     R3BSofTofWReader* unpacktofw;
     R3BSofScalersReader* unpackscalers;
     R3BNeulandTamexReader* unpackneuland;
@@ -253,9 +253,9 @@ void filltree(int runnum)
       unpackWRSofia = new R3BSofWhiterabbitReader((EXT_STR_h101_WRSOFIA*)&ucesb_struct.wrsofia, offsetof(EXT_STR_h101, wrsofia), sofiaWR);
     }
     if (fMwpc0 || fMwpc1 || fMwpc2 || fMwpc3)
-        unpackmwpc = new R3BSofMwpcReader((EXT_STR_h101_SOFMWPC_t*)&ucesb_struct.mwpc, offsetof(EXT_STR_h101, mwpc));
+        unpackmwpc = new R3BMwpcReader((EXT_STR_h101_SOFMWPC_t*)&ucesb_struct.mwpc, offsetof(EXT_STR_h101, mwpc));
     if (fTwim)
-        unpacktwim = new R3BSofTwimReader((EXT_STR_h101_SOFTWIM_t*)&ucesb_struct.twim, offsetof(EXT_STR_h101, twim));
+        unpacktwim = new R3BTwimReader((EXT_STR_h101_SOFTWIM_t*)&ucesb_struct.twim, offsetof(EXT_STR_h101, twim));
     if (fTofW)
         unpacktofw = new R3BSofTofWReader((EXT_STR_h101_SOFTOFW_t*)&ucesb_struct.tofw, offsetof(EXT_STR_h101, tofw));
     if (fScalers)
@@ -358,7 +358,7 @@ void filltree(int runnum)
             parList1->Add(new TObjString(sofiacalfilename));
 	    parList1->Add(new TObjString(vftxcalfilename));
 	    parList1->Add(new TObjString(tofwhitfilename));
-            parList1->Add(new TObjString(califamapfilename));
+            //parList1->Add(new TObjString(califamapfilename));
             parIo1->open(parList1);
             rtdb->setFirstInput(parIo1);
             rtdb->print();
@@ -491,7 +491,7 @@ void filltree(int runnum)
     }
 
     //Califa
-    //if (fCalifa && fCal_level_califa)
+    //if (fCalifa && fCal_level_califa){
     if (fCalifa){
 	
 	// R3BCalifaMapped2CrystalCal ---
@@ -564,7 +564,7 @@ void filltree(int runnum)
         run->AddTask(CalifaOnline);
     }*/
 
-    //if (fMusic && fCalifa && fTwim) ?????????????????
+    //if (fMusic && fCalifa && fTwim)??????
     /*
     if (fSci&&fMusic&&fTwim){
       R3BSofFrsFillTree* frsfilltree = new R3BSofFrsFillTree();
@@ -584,12 +584,16 @@ void filltree(int runnum)
     //*/
     //R3BSofOnlineSpectra* sofonline = new R3BSofOnlineSpectra();
     //run->AddTask(sofonline);
-
     // Initialize -------------------------------------------
     run->Init();
     FairLogger::GetLogger()->SetLogScreenLevel("INFO");
     //FairLogger::GetLogger()->SetLogScreenLevel("DEBUG");
-
+#if 0
+    for (int id=0; id<5000; id++)
+      //if (preamp_ranges[id])
+        std::cout <<preamp_ranges[id] <<", ";
+#endif
+    
     // Run --------------------------------------------------
     run->Run((nev < 0) ? nev : 0, (nev < 0) ? 0 : nev);
 
